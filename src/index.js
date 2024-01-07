@@ -44,7 +44,8 @@ pool.on('error', (err) => {
 import auth from '../src/routes/authentication.js'
 app.use('/authentication',auth )
 
-
+import courses from '../src/routes/courses.js'
+app.use('/courses',courses)
 
 
 

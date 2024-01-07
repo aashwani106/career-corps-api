@@ -9,25 +9,10 @@ const router = express.Router()
 
 
 // API For Login 
-router.get('/login', function (req, res) {
-    // let obj = JSON.parse(req.body)
-    let sql = `SELECT * FROM local_db.authentication_info `;
-    pool.query(sql, function (error, result) {
-        if (error) {
-            console.log(error)
-        } else {
-            console.log(result)
-            res.send(result)
-        }
-    })
-})
-
-
-// API For Login 
-router.get('/loginTest', function (req, res) {
+router.get('/login:dtls', function (req, res) {
     let objectToSend = {}
-    let obj = req.body
-    let sql = `SELECT * FROM local_db.authentication_info where email = ${obj.email}`;
+    let obj = JSON.parse(req.params.dtls)
+    let sql = `SELECT * FROM local_db.authentication_info where phone_no = ${obj.phone_no}`;
     pool.query(sql, function (error, result) {
         if (error) {
             objectToSend['error'] = true;
@@ -40,12 +25,12 @@ router.get('/loginTest', function (req, res) {
                     objectToSend['data'] = 'Login Successfully';
                     res.send(objectToSend);
                 } else {
-                    objectToSend['error'] = false;
+                    objectToSend['error'] = true;
                     objectToSend['data'] = 'Password does not match!';
                     res.send(objectToSend);
                 }
             } else {
-                objectToSend['error'] = false;
+                objectToSend['error'] = true;
                 objectToSend['data'] = 'Email does not exists!';
                 res.send(objectToSend);
             }
@@ -54,36 +39,34 @@ router.get('/loginTest', function (req, res) {
 })
 
 
-
 // API For Register
 router.post('/signup', (req, res) => {
 
     let obj = req.body
-    console.log('====================================');
-    console.log(req.body);
-    console.log('====================================');
+    // console.log(obj);
     let objectToSend = {}
-
-    let query = `Select max(id) from user.login`
-    pool.query(query, (result1, error1) => {
-        if (error1) {
+    let query = `SELECT MAX(id) as id FROM system_data.auth_data`
+    pool.query(query, (err1, result) => {
+        if (err1) {
             objectToSend['error'] = true;
-            objectToSend['data'] = 'Server Side Error...'
+            objectToSend['data'] = 'Server Side Error!'
             res.send(objectToSend)
+            return;
         } else {
 
             let id = 1;
-            if (result1.length > 0) {
-                id = result1[0]['id'] + 1
+            if (result.length > 0) {
+                id = result[0]['id'] + 1
             }
             let role_cd = 'USER';
-            let le_id = role_cd + '_' + id;
+            let user_id = role_cd + '_' + id;
 
-            let query1 = `Insert into User.login (id,le_id,name,email,password,role_cd,phone_no,status) 
-            VALUE (${id},${le_id},${obj.name},${obj.email},${obj.password},${role_cd},${obj.phone_number},'ACTIVE')`
+            let query1 = `Insert into system_data.auth_data (id,user_id,name,email,password,role_cd,phone_no,status) 
+                VALUE (${id},'${user_id}','${obj.name}','${obj.email}','${obj.password}','${role_cd}',${obj.phone_no},'ACTIVE')`
 
-            db.query(query1, (error2, result2) => {
+            pool.query(query1, (error2, result2) => {
                 if (error2) {
+                    console.log(query1);
                     objectToSend['error'] = true;
                     objectToSend['data'] = 'Server Side Error...'
                     res.send(objectToSend)
@@ -91,13 +74,12 @@ router.post('/signup', (req, res) => {
                     objectToSend['error'] = false;
                     objectToSend['data'] = 'Sign-Up Successfully!'
                     res.send(objectToSend)
+                    return;
                 }
             })
         }
 
-
-
-    })
+    });
 
 })
 
